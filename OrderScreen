@@ -1,0 +1,218 @@
+@name OrderScreen_V5_Manager
+@inputs [EGP]:wirelink
+@persist EGPInt Total Locked Profit [Cart Fines]:table [Title]:string
+@trigger all
+
+# Order Screen v5 v1.2, created by Ivef (STEAM_0:0:44218648)
+# DO NOT SELL, this was relased  ByB for everyone's use.
+
+interval(50)
+
+if(duped()){
+    reset()
+}
+if(first()){
+    runOnChat(1)
+    #include "egplib"
+    EGPInt = 1
+    Locked = 0
+    Profit = 25
+    Fines = table()
+    Title = "Lojinha do Breddy"
+    dsJoinGroup("order_screen")
+    dsSend("update_profit","order_screen",Profit)
+    function void setTotal(){
+        Total = 0
+        for(N=1,Cart:count()){
+            Total += (Cart[N,table][1,number] * Cart[N,table][3,number])
+        }
+        EGP:egpSetText(33,"$"+Total)
+    }
+    function number findCartID(Name:string){
+        for(M=1,Cart:count()){
+    99      if(Cart[M,table][2,string] == Name){
+    999         return M
+    99      }
+    9   }
+    9   return 0
+    }    
+    function void updateCart(){
+        if(Cart:count() == 0){
+            for(I=1,12){
+                EGP:egpSetText(7+I,"")
+            }
+        }
+        else{
+            for(I=1,Cart:count()){
+                EGP:egpSetText(7+I,Cart[I,table][1,normal]+" x "+Cart[I,table][2,string])
+            }
+        }
+    }    
+    function void resetCart(){
+        Cart = table()
+        updateCart()
+        Total = 0
+        setTotal()
+    }
+    function void notify(SoundPath:string){
+        EGP:entity():soundPlay(1,0,SoundPath)
+    }
+}
+if(EGP & EGPInt == 1){
+    EGPInt = 0
+    EGP:egpClear()
+    EGP:egpResolution(vec2(0,0),vec2(1000,1000))
+    EGP:box(1,vec2(500,500),vec2(1000,1000),vec4(51, 110, 123, 255))
+    EGP:box(2,vec2(500,40),vec2(1000,80),vec4(236,236,236,150))  
+    EGP:text(3,"",vec2(10,40),vec4(34, 49, 63, 200),20,"r")
+    EGP:text(4,Title,vec2(990,40),vec4(200, 100, 63, 200), 20, "l")
+    EGP:box(5,vec2(834,541.5),vec2(338,924),vec4(210, 215, 211,150))
+    EGP:text(6,"Carrinho de compras",vec2(831,112),vec4(34, 49, 63, 200),20)
+    EGP:line(7,vec2(721,138),vec2(941,138),vec4(34, 49, 63, 200),2)
+    for(I=1,12){
+        EGP:text(7+I,"",vec2(731,120+(I*55)),vec4(34, 49, 63, 200),16,"r") #7-19
+    }
+    EGP:line(32,vec2(721,820),vec2(941,820),vec4(34, 49, 63, 200),2)
+    EGP:text(33,"$0",vec2(731,870),vec4(200,50,0,200),30,"r")    
+    EGP:box(34,vec2(333,750),vec2(650,400),vec4(236,236,236,150))
+    EGP:box(35,vec2(333,650),vec2(640,180),vec4(41, 128, 185,150))
+    EGP:box(36,vec2(333,850),vec2(640,180),vec4(231, 76, 60,150))
+    EGP:text(37,"Travar",vec2(333,650),vec4(236,236,236,200),40)
+    EGP:text(38,"Resetar",vec2(333,850),vec4(236,236,236,200),40)
+    EGP:box(39,vec2(333,140),vec2(650,100),vec4(236,236,236,150))
+    EGP:text(40,"Ganho: 25%",vec2(20,140),vec4(34, 49, 63, 200),25,"r")
+    EGP:box(41,vec2(400,140),vec2(80),vec4(149, 165, 166,200))
+    EGP:box(42,vec2(500,140),vec2(80),vec4(149, 165, 166,200))
+    EGP:text(43,"-",vec2(400,140),vec4(34, 49, 63, 200),40)
+    EGP:text(44,"+",vec2(500,140),vec4(34, 49, 63, 200),40)
+    EGP:box(45,vec2(333,245),vec2(650,100),vec4(236,236,236,150))
+    EGP:box(46,vec2(173,245),vec2(320,90),vec4(127, 140, 141,255))
+    EGP:box(47,vec2(497,245),vec2(320,90),vec4(149, 165, 166,200))
+    EGP:text(48,"Pesado",vec2(173,243),vec4(34, 49, 63, 200),30)
+    EGP:text(49,"Normal",vec2(499,243),vec4(34, 49, 63, 200),30)
+    
+    EGP:text(289,"Criado por Ivef - Traduzido por Marci12 | v5_ver_1.2",vec2(5,990),vec4(236,236,236,200),11,"r")    
+}
+
+    local Ply = owner()
+    local Cursor = EGP:egpCursor(Ply)
+    local Use = Ply:keyUse()
+    if(Ply:isValid() & Ply:isAlive()){
+        if(changed(Use) & Use){
+            if(EGP:button(35,Cursor)){
+                notify("buttons/button19.wav")
+                if(Locked == 1){
+                    dsSend("lock","order_screen",0)
+                }
+                else{
+                    dsSend("lock","order_screen",1)
+                }
+            }
+            elseif(EGP:button(36,Cursor)){
+                notify("buttons/button19.wav")
+                dsSend("reset","order_screen",1)
+                resetCart()
+            }
+            elseif(EGP:button(41,Cursor)){
+                Profit = Profit - 5
+                EGP:egpSetText(40,"Ganho: "+Profit+"%")
+                dsSend("update_profit","order_screen",Profit)
+                notify("buttons/button24.wav")
+            }
+            elseif(EGP:button(42,Cursor)){
+                Profit = Profit + 5
+                EGP:egpSetText(40,"Ganho: "+Profit+"%")
+                dsSend("update_profit","order_screen",Profit)
+                notify("buttons/button24.wav")
+            }
+            elseif(EGP:button(46,Cursor)){
+                dsSend("mode_change","order_screen",1)
+                EGP:egpColor(46,vec4(127, 140, 141, 255))
+                EGP:egpColor(47,vec4(149, 165, 166, 200))
+                notify("buttons/button24.wav")
+            }
+            elseif(EGP:button(47,Cursor)){
+                dsSend("mode_change","order_screen",2)
+                EGP:egpColor(47,vec4(127, 140, 141, 255))
+                EGP:egpColor(46,vec4(149, 165, 166, 200))
+                notify("buttons/button24.wav")
+            }
+        }
+    }
+
+if(dsClk("new_customer")){
+    local Ply = dsGetEntity()
+    EGP:egpSetText(3,"Jogador: "+Ply:name())
+}
+elseif(dsClk("logged_out")){
+    local Num = dsGetNumber()
+    if(Num == 1){
+        resetCart()
+        setTotal()
+        EGP:egpSetText(3,"")
+        for(I=1,12){
+            EGP:egpSetText(7+I,"")
+        }
+    }    
+}
+elseif(dsClk("reset")){
+    local Num = dsGetNumber()
+    if(Num == 1){
+        Cart:clear()
+        resetCart()
+        setTotal()
+        EGP:egpSetText(3,"")
+        for(I=1,12){
+            EGP:egpSetText(7+I,"")
+        }        
+    }
+}
+elseif(dsClk("item_added")){
+    local ItemData = dsGetTable()
+    local QD = ItemData[1,number]
+    local Price = ItemData[2,number]
+    local Name = ItemData[3,string]
+    local CartID = findCartID(Name)
+    if(QD == 1){
+        Cart:pushTable(table(QD,Name,Price))
+    }
+    else{
+        Cart[CartID,table][1,normal] = QD
+    }
+    setTotal()
+    updateCart()
+}
+elseif(dsClk("item_removed")){
+    local ID = dsGetNumber()
+    Cart[ID,table][1,number] = 0
+    Cart[ID,table][2,number] = 0
+    Cart[ID,table][3,number] = 0
+    EGP:egpSetText(7+ID,"[REMOVIDO]")
+    setTotal()
+}
+elseif(dsClk("order_submitted")){
+    local Data = dsGetTable()
+    local Ply = Data[1,entity]
+    Total = Data[2,normal]
+    printColor(vec(39, 174, 96),"[Loja] ",teamColor(Ply:team()),Ply:name(),vec(39, 174, 96)," enviou o pedido.")
+}
+elseif(dsClk("locked")){
+    local N = dsGetNumber()
+    if(N == 1){
+        Locked = 1
+        EGP:egpSetText(37,"Destravar")
+    }
+    else{
+        Locked = 0
+        EGP:egpSetText(37,"Travar")
+    }
+}
+if(fileClk()){
+    if(fileClk("locations_"+map()+".txt") & fileLoaded()){
+        Locations = vonDecodeTable(fileRead())
+        hint("Arquivo de locais carregado.",5)
+    }
+    else{
+        hint("Erro: Nenhum arquivo detectado. Salve um local para criar.",5)
+    }
+}
